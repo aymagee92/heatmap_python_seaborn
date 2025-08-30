@@ -1,0 +1,181 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import streamlit as st
+
+# default layout. explicitly called to avoid streamlit bug.
+st.set_page_config(layout="wide")
+
+# --- VARIABLES ---
+number_of_columns = 9
+number_of_rows = 9
+cbar_right_side_only = True # do you want to see cbar on right side graph only? Only applies to 2x2 and 2 column layouts.
+
+# how many heatmaps do you want to see?
+number_of_heatmaps_across = 2       # max value of 2
+number_of_heatmaps_vertical = 1     # max value of 2
+
+# --- BRINGING IN DATA ---
+# going to set it up to work on a dictionary of pandas dataframes
+# code can be adjusted to work on hard-coded data or import from CSV or SQLITE
+
+dictionary_of_dataframes = {i:pd.DataFrame(
+                        data = np.random.randint(0,100,size=(number_of_rows,number_of_columns)),
+                        index = range(1,number_of_rows+1),
+                        columns = range(1,number_of_columns+1))
+                        for i in range(4)}
+
+# --- Initializing Plot ---
+if number_of_heatmaps_across == 2 and number_of_heatmaps_vertical == 2:
+    figsize = (4,4)
+    #fontsize
+    annot_fontsize = 4
+    tickmark_fontsize = 4
+    axis_label_fontsize = 6
+    title_fontsize = 8
+    colorbar_fontsize = 4
+    #padding
+    axis_label_padding = 2
+    title_padding = 4
+
+elif number_of_heatmaps_across == 2 and number_of_heatmaps_vertical == 1:
+    figsize = (10,4)
+    #fontsize
+    annot_fontsize = 8
+    tickmark_fontsize = 8
+    axis_label_fontsize = 10
+    title_fontsize = 14
+    colorbar_fontsize = 8
+    #padding
+    axis_label_padding = 2
+    title_padding = 4
+elif number_of_heatmaps_across == 1 and number_of_heatmaps_vertical == 2:
+    figsize = (6,10)
+    #fontsize
+    annot_fontsize = 10
+    tickmark_fontsize = 10
+    axis_label_fontsize = 14
+    title_fontsize = 18
+    colorbar_fontsize = 10
+    #padding
+    axis_label_padding = 10
+    title_padding = 8
+else:
+    figsize = (10,8)
+    #fontsize
+    annot_fontsize = 16
+    tickmark_fontsize = 18
+    axis_label_fontsize = 20
+    title_fontsize = 26
+    colorbar_fontsize = 18
+    #padding
+    axis_label_padding = 15
+    title_padding = 15
+
+# initializes
+fig,axes = plt.subplots(
+                    ncols = number_of_heatmaps_across,
+                    nrows = number_of_heatmaps_vertical,
+                    figsize=figsize,           # use (10,8) for 1 graph. Use (12,5) and st.set_page_config(layout="wide") for 2 column graph. Use (6,10) and st.set_page_config(layout="centered") for 2 vertical graph.
+                    constrained_layout=True)  #Matplotlib auto-calculates spacing (both vertical and horizontal) so titles, axis labels, tick labels, and colorbars don’t overlap.
+
+# always make axes iterable
+axes = np.atleast_1d(axes).flatten()
+
+for i,ax in enumerate(axes):
+
+    # Provides titles and label text
+    if number_of_heatmaps_vertical == 2:
+        if number_of_heatmaps_across == 2:
+            title_text = ['Graph 1','Graph 2','\nGraph 3','Graph 4'][i]
+        else:
+            title_text = ['Graph 1','\nGraph 2','Graph 3','Graph 4'][i]
+    else:
+        title_text = ['Graph 1','Graph 2','Graph 3','Graph 4'][i]
+
+    xaxis_labels = ['X Axis 1','X Axis 2','X Axis 3','X Axis 4'][i]
+    yaxis_labels = ['Y Axis 1','Y Axis 2','Y Axis 3','Y Axis 4'][i]
+
+    # turns cbar on and off based on variable
+    if cbar_right_side_only == True and number_of_heatmaps_across>1:
+        cbar_status = False if i % 2 == 0 else True
+    else:
+        cbar_status = True
+
+    heatmap = sns.heatmap(
+                data = dictionary_of_dataframes[i],      # heatmap data,
+                ax = ax,                # which box the chart should be plotted in.
+                cmap = "RdYlGn",        # color used. This is red yellow green
+                center = None,             # use None for auto. Indicates what number the midpoint (yellow color) should be
+                robust = True,          # if True, prevents outliers from messing up the colors.
+                annot=True,             # shows the values in the cells. Default is True
+                annot_kws = {
+                    "fontsize":annot_fontsize,
+                    #"color": "black",
+                    "weight": "bold",
+                    "rotation": 0,
+                    "ha": "center",         # controls horizontal position within the cell
+                    "va": "center",         # controls vertical position within the cell.
+                    #"style": "italics",
+                    "alpha": 1              # controls opacity of value within cell. 0 is invisible, 1 is fully visible.            
+                },
+                #fmt=".2f",              # how the annotations in the cells are formatted. ".2f" indicates 2 decimal places. ".2%" indicates 2 decimal places and percent but auto multiplies by 100
+                linewidths=1,           # width of the line in between the cells
+                linecolor="black",      # color of the lines in between the cells
+                cbar = cbar_status,            # whether colorbar is shown or not. Defaults to True.          
+                cbar_kws = {"orientation":"vertical"},    # if cbar is on, indicates whether it will be horizontal or vertical. Default is vertical.         
+                xticklabels = True,
+                yticklabels = True)
+                
+    # controlling format of x and y label values
+    heatmap.set_xticklabels(
+            labels = heatmap.get_xticklabels(),
+            fontsize = tickmark_fontsize
+    )
+
+    heatmap.set_yticklabels(
+            labels = heatmap.get_yticklabels(),
+            fontsize = tickmark_fontsize,
+            rotation = 0,                       # rotates the y axis tick labels to correct orientation so i don't have to turn neck to read.
+    )
+
+    # set title and labels
+    ax.set_xlabel(
+        xlabel = xaxis_labels,      # text the label will show
+        labelpad = axis_label_padding,                      # Puts extra space between the tick labels and the axis label
+        fontsize = axis_label_fontsize,
+        weight = "bold"
+        )
+
+    if cbar_status == False or number_of_heatmaps_across==1:
+        ax.set_ylabel(
+            ylabel = yaxis_labels,
+            labelpad = axis_label_padding,
+            fontsize = axis_label_fontsize,
+            weight = "bold")
+
+    ax.set_title(
+        label = title_text,
+        fontsize = title_fontsize,
+        weight = "bold",
+        pad = title_padding)                       # puts a buffer between the title and the heatmap.
+
+    # adjust fontsize of colorbar ticks
+    if heatmap.collections[0].colorbar is not None:     # run only if the graph has a colorbar.
+        cbar = ax.collections[0].colorbar
+        cbar.ax.tick_params(labelsize=colorbar_fontsize)
+    
+if number_of_heatmaps_across == 1 and number_of_heatmaps_vertical in (1, 2):
+
+    left, center, right = st.columns([1,2,1])   # ratio controls width
+
+    with center:
+        fig.add_artist(plt.Line2D([0, 1], [0.5, 0.5], color="black", linewidth=1, transform=fig.transFigure))
+    
+        # plotting to streamlit
+        st.pyplot(fig)
+      
+else:
+    # plotting to streamlit
+    st.pyplot(fig)
