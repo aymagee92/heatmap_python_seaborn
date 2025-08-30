@@ -8,23 +8,43 @@ import streamlit as st
 st.set_page_config(layout="wide")
 
 # --- VARIABLES ---
-number_of_columns = 9
-number_of_rows = 9
-cbar_right_side_only = True # do you want to see cbar on right side graph only? Only applies to 2x2 and 2 column layouts.
+import_data_from_csv = True
+cbar_right_side_only = True     # do you want to see cbar on right side graph only? Only applies to 2x2 and 2 column layouts.
 
 # how many heatmaps do you want to see?
-number_of_heatmaps_across = 2       # max value of 2
-number_of_heatmaps_vertical = 1     # max value of 2
+number_of_heatmaps_across = 1       # max value of 2
+number_of_heatmaps_vertical = 2     # max value of 2
+
+# number of columns and rows
+number_of_columns = 9
+number_of_rows = 9
 
 # --- BRINGING IN DATA ---
 # going to set it up to work on a dictionary of pandas dataframes
 # code can be adjusted to work on hard-coded data or import from CSV or SQLITE
 
-dictionary_of_dataframes = {i:pd.DataFrame(
-                        data = np.random.randint(0,100,size=(number_of_rows,number_of_columns)),
-                        index = range(1,number_of_rows+1),
-                        columns = range(1,number_of_columns+1))
-                        for i in range(4)}
+if import_data_from_csv:
+    csv_names = {
+        0: "Book1.csv",
+        1: "Book2.csv",
+        2: "Book3.csv",
+        3: "Book4.csv"
+    }
+
+    dictionary_of_dataframes = {i:pd.read_csv(
+                            filepath_or_buffer=csv_names[i],
+                            header = None)
+                            for i in range(len(csv_names))}
+
+else:
+    
+    data = np.random.randint(0,100,size=(number_of_rows,number_of_columns))
+
+    dictionary_of_dataframes = {i:pd.DataFrame(
+                            data = data,
+                            index = range(1,number_of_rows+1),
+                            columns = range(1,number_of_columns+1))
+                            for i in range(4)}
 
 # --- Initializing Plot ---
 if number_of_heatmaps_across == 2 and number_of_heatmaps_vertical == 2:
@@ -77,7 +97,7 @@ else:
 fig,axes = plt.subplots(
                     ncols = number_of_heatmaps_across,
                     nrows = number_of_heatmaps_vertical,
-                    figsize=figsize,           # use (10,8) for 1 graph. Use (12,5) and st.set_page_config(layout="wide") for 2 column graph. Use (6,10) and st.set_page_config(layout="centered") for 2 vertical graph.
+                    figsize=figsize,          
                     constrained_layout=True)  #Matplotlib auto-calculates spacing (both vertical and horizontal) so titles, axis labels, tick labels, and colorbars don’t overlap.
 
 # always make axes iterable
@@ -112,7 +132,7 @@ for i,ax in enumerate(axes):
                 annot=True,             # shows the values in the cells. Default is True
                 annot_kws = {
                     "fontsize":annot_fontsize,
-                    #"color": "black",
+                    #"color": "black",      # can override the color here. Keeping off thought because by default it will switch between black and white based on easier visibility.
                     "weight": "bold",
                     "rotation": 0,
                     "ha": "center",         # controls horizontal position within the cell
@@ -120,7 +140,7 @@ for i,ax in enumerate(axes):
                     #"style": "italics",
                     "alpha": 1              # controls opacity of value within cell. 0 is invisible, 1 is fully visible.            
                 },
-                #fmt=".2f",              # how the annotations in the cells are formatted. ".2f" indicates 2 decimal places. ".2%" indicates 2 decimal places and percent but auto multiplies by 100
+                fmt="d",              # how the annotations in the cells are formatted. ".2f" indicates 2 decimal places. ".2%" indicates 2 decimal places and percent but auto multiplies by 100
                 linewidths=1,           # width of the line in between the cells
                 linecolor="black",      # color of the lines in between the cells
                 cbar = cbar_status,            # whether colorbar is shown or not. Defaults to True.          
@@ -179,3 +199,4 @@ if number_of_heatmaps_across == 1 and number_of_heatmaps_vertical in (1, 2):
 else:
     # plotting to streamlit
     st.pyplot(fig)
+
