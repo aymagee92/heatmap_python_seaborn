@@ -20,8 +20,8 @@ number_of_columns = 9
 number_of_rows = 9
 
 # --- BRINGING IN DATA ---
-# going to set it up to work on a dictionary of pandas dataframes
-# code can be adjusted to work on hard-coded data or import from CSV or SQLITE
+# variable import_data_from_csv if you have data importing from csv
+# if import_data_from_csv is false, python will auto create random data.
 
 if import_data_from_csv:
     csv_names = {
