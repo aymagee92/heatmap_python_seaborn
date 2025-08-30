@@ -12,7 +12,7 @@ import_data_from_csv = True
 cbar_right_side_only = True     # do you want to see cbar on right side graph only? Only applies to 2x2 and 2 column layouts.
 
 # how many heatmaps do you want to see?
-number_of_heatmaps_across = 1       # max value of 2
+number_of_heatmaps_across = 2       # max value of 2
 number_of_heatmaps_vertical = 2     # max value of 2
 
 # number of columns and rows
@@ -31,10 +31,15 @@ if import_data_from_csv:
         3: "Book4.csv"
     }
 
-    dictionary_of_dataframes = {i:pd.read_csv(
-                            filepath_or_buffer=csv_names[i],
-                            header = None)
-                            for i in range(len(csv_names))}
+    dictionary_of_dataframes = {
+        i: pd.read_csv(csv_names[i], header=None)
+            .set_axis(range(1, number_of_rows+1), axis=0)       # ensures y axis starts at 1
+            .set_axis(range(1, number_of_columns+1), axis=1)    # ensures x axis starts at 1
+        for i in range(len(csv_names))
+    }
+
+
+    
 
 else:
     
@@ -48,16 +53,16 @@ else:
 
 # --- Initializing Plot ---
 if number_of_heatmaps_across == 2 and number_of_heatmaps_vertical == 2:
-    figsize = (4,4)
+    figsize = (6,6)
     #fontsize
-    annot_fontsize = 4
-    tickmark_fontsize = 4
-    axis_label_fontsize = 6
-    title_fontsize = 8
-    colorbar_fontsize = 4
+    annot_fontsize = 6
+    tickmark_fontsize = 6
+    axis_label_fontsize = 8
+    title_fontsize = 10
+    colorbar_fontsize = 6
     #padding
-    axis_label_padding = 2
-    title_padding = 4
+    axis_label_padding = 4
+    title_padding = 6
 
 elif number_of_heatmaps_across == 2 and number_of_heatmaps_vertical == 1:
     figsize = (10,4)
@@ -191,7 +196,8 @@ if number_of_heatmaps_across == 1 and number_of_heatmaps_vertical in (1, 2):
     left, center, right = st.columns([1,2,1])   # ratio controls width
 
     with center:
-        fig.add_artist(plt.Line2D([0, 1], [0.5, 0.5], color="black", linewidth=1, transform=fig.transFigure))
+        if number_of_heatmaps_vertical == 2:
+            fig.add_artist(plt.Line2D([0, 1], [0.5, 0.5], color="black", linewidth=1, transform=fig.transFigure))
     
         # plotting to streamlit
         st.pyplot(fig)
@@ -199,4 +205,3 @@ if number_of_heatmaps_across == 1 and number_of_heatmaps_vertical in (1, 2):
 else:
     # plotting to streamlit
     st.pyplot(fig)
-
